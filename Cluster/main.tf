@@ -1,12 +1,12 @@
 provider "aws" {
-  region = "ap-south-1"
+  region = "eu-central-1"
 }
 
 resource "aws_vpc" "devopsshack_vpc" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = "devopsshack-vpc"
+    Name = "curtis-vpc"
   }
 }
 
@@ -14,11 +14,11 @@ resource "aws_subnet" "devopsshack_subnet" {
   count = 2
   vpc_id                  = aws_vpc.devopsshack_vpc.id
   cidr_block              = cidrsubnet(aws_vpc.devopsshack_vpc.cidr_block, 8, count.index)
-  availability_zone       = element(["ap-south-1a", "ap-south-1b"], count.index)
+  availability_zone       = element(["eu-central-1a", "eu-central-1b"], count.index)
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "devopsshack-subnet-${count.index}"
+    Name = "curtis-subnet-${count.index}"
   }
 }
 
@@ -26,7 +26,7 @@ resource "aws_internet_gateway" "devopsshack_igw" {
   vpc_id = aws_vpc.devopsshack_vpc.id
 
   tags = {
-    Name = "devopsshack-igw"
+    Name = "curtis-igw"
   }
 }
 
@@ -39,7 +39,7 @@ resource "aws_route_table" "devopsshack_route_table" {
   }
 
   tags = {
-    Name = "devopsshack-route-table"
+    Name = "curtis-route-table"
   }
 }
 
@@ -82,12 +82,12 @@ resource "aws_security_group" "devopsshack_node_sg" {
   }
 
   tags = {
-    Name = "devopsshack-node-sg"
+    Name = "curtis-node-sg"
   }
 }
 
 resource "aws_eks_cluster" "devopsshack" {
-  name     = "devopsshack-cluster"
+  name     = "curtis-cluster"
   role_arn = aws_iam_role.devopsshack_cluster_role.arn
 
   vpc_config {
@@ -98,7 +98,7 @@ resource "aws_eks_cluster" "devopsshack" {
 
 resource "aws_eks_node_group" "devopsshack" {
   cluster_name    = aws_eks_cluster.devopsshack.name
-  node_group_name = "devopsshack-node-group"
+  node_group_name = "curtis-node-group"
   node_role_arn   = aws_iam_role.devopsshack_node_group_role.arn
   subnet_ids      = aws_subnet.devopsshack_subnet[*].id
 
@@ -117,7 +117,7 @@ resource "aws_eks_node_group" "devopsshack" {
 }
 
 resource "aws_iam_role" "devopsshack_cluster_role" {
-  name = "devopsshack-cluster-role"
+  name = "curtis-cluster-role"
 
   assume_role_policy = <<EOF
 {
@@ -134,6 +134,7 @@ resource "aws_iam_role" "devopsshack_cluster_role" {
 }
 EOF
 }
+
 
 resource "aws_iam_role_policy_attachment" "devopsshack_cluster_role_policy" {
   role       = aws_iam_role.devopsshack_cluster_role.name
